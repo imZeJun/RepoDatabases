@@ -1,4 +1,4 @@
-package com.example.lizejun.repodatabases.db;
+package com.example.lizejun.repodatabases.loader;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
@@ -14,10 +14,6 @@ public abstract class BaseDataLoader<Result> extends AsyncTaskLoader<Result> {
     Result mResult;
     Bundle mBundles;
     CancellationSignal mCancellationSignal;
-
-    public BaseDataLoader(Context context) {
-        super(context);
-    }
 
     public BaseDataLoader(Context context, Bundle bundle) {
         super(context);

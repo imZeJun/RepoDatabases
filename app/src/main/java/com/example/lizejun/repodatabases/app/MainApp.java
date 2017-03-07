@@ -1,7 +1,7 @@
-package com.example.lizejun.repodatabases;
+package com.example.lizejun.repodatabases.app;
 
 import android.app.Application;
-import com.example.lizejun.repodatabases.db.ContextUtils;
+import com.example.lizejun.repodatabases.utils.ContextUtils;
 
 public class MainApp extends Application {
 
