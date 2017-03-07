@@ -35,4 +35,12 @@
         android:layout_height="wrap_content"
         android:onClick="multiCloseUseOneDBHelper"
         android:text="打开已经关闭的DBHelper"/>
+    <EditText
+        android:id="@+id/loader_input"
+        android:layout_width="match_parent"
+        android:layout_height="66dp" />
+    <TextView
+        android:id="@+id/loader_result"
+        android:layout_width="match_parent"
+        android:layout_height="66dp" />
 </LinearLayout>

@@ -4,13 +4,13 @@ import android.content.Context;
 
 public class ContextUtils {
 
-    private static Context sAppContext;
+    private static Context sContext;
 
     public static void setAppContext(Context context) {
-        sAppContext = context;
+        sContext = context;
     }
 
     public static Context getAppContext() {
-        return sAppContext;
+        return sContext;
     }
 }

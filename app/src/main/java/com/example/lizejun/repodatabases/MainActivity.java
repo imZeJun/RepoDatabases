@@ -1,13 +1,21 @@
 package com.example.lizejun.repodatabases;
 
 import android.app.Activity;
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 
+import com.example.lizejun.repodatabases.db.BaseDataLoader;
 import com.example.lizejun.repodatabases.db.ConcreteDBHelperFactory;
 import com.example.lizejun.repodatabases.db.DBHelperManager;
 import com.example.lizejun.repodatabases.db.MultiThreadDBContract;
@@ -15,17 +23,110 @@ import com.example.lizejun.repodatabases.db.MultiThreadDBHelper;
 
 public class MainActivity extends Activity {
 
+    private MyLoaderCallback mMyLoaderCallback;
+
+    private TextView mResultView;
+    private EditText mEditText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        DBHelperManager.getInstance().setDBHelperFactory(new ConcreteDBHelperFactory());
+        init();
+        register();
     }
 
-    /**
-     * 多线程同时创建,每个线程持有一个SQLiteOpenHelper
-     * @param view
-     */
+    private void init() {
+        mEditText = (EditText) findViewById(R.id.loader_input);
+        mResultView = (TextView) findViewById(R.id.loader_result);
+        mEditText.addTextChangedListener(new MyEditTextWatcher());
+    }
+
+    private void register() {
+        mMyLoaderCallback = new MyLoaderCallback();
+        Log.d("TestLoader", "register");
+        getLoaderManager().initLoader(0, null, mMyLoaderCallback);
+    }
+
+    private void startQuery(String query) {
+        if (query != null) {
+            Bundle bundle = new Bundle();
+            bundle.putString("query", query);
+            getLoaderManager().restartLoader(0, bundle, mMyLoaderCallback);
+        }
+    }
+
+    private void showResult(String result) {
+        if (mResultView != null) {
+            mResultView.setText(result);
+        }
+    }
+
+    private static class MyLoader extends BaseDataLoader<String> {
+
+        public MyLoader(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected String loadData(Bundle bundle) {
+            Log.d("TestLoader", "loadData");
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                System.out.println("loadData, e=" + e);
+            }
+            return bundle != null ? bundle.getString("query") : "empty";
+        }
+    }
+
+    private class MyLoaderCallback implements LoaderManager.LoaderCallbacks {
+
+        @Override
+        public Loader onCreateLoader(int id, Bundle args) {
+            Log.d("TestLoader", "onCreateLoader");
+            return new MyLoader(getApplicationContext());
+        }
+
+        @Override
+        public void onLoadFinished(Loader loader, Object data) {
+            Log.d("TestLoader", "onLoadFinished");
+            showResult((String) data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader loader) {
+            Log.d("TestLoader", "onLoaderReset");
+            showResult("");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //getLoaderManager().destroyLoader(0);
+    }
+
+    private class MyEditTextWatcher implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Log.d("TestLoader", "onTextChanged");
+            startQuery(s != null ? s.toString() : "");
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    }
+
+
     public void multiOnCreate(View view) {
         int threadCount = 50;
         for (int i = 0; i < threadCount; i++) {
@@ -44,10 +145,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * 多个线程同时写入,每个线程持有一个SQLiteOpenHelper
-     * @param view
-     */
+
     public void multiWriteUseMultiDBHelper(View view) {
         MultiThreadDBHelper init = new MultiThreadDBHelper(MainActivity.this);
         SQLiteDatabase database = init.getWritableDatabase();
@@ -71,10 +169,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * 多个线程同时写入,公用一个SQLiteOpenHelper
-     * @param view
-     */
+
     public void multiWriteUseOneDBHelper(View view) {
         MultiThreadDBHelper init = new MultiThreadDBHelper(MainActivity.this);
         final SQLiteDatabase database = init.getWritableDatabase();
@@ -96,10 +191,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * 多线程同时读取,每个线程持有一个SQLiterDBHelper
-     * @param view
-     */
+
     public void multiReadUseMultiDBHelper(View view) {
         MultiThreadDBHelper init = new MultiThreadDBHelper(MainActivity.this);
         SQLiteDatabase database = init.getWritableDatabase();
@@ -124,10 +216,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * 多线程下共用一个SQLiteDBHelper
-     * @param view
-     */
+
     public void multiCloseUseOneDBHelper(View view) {
         final MultiThreadDBHelper init = new MultiThreadDBHelper(MainActivity.this);
         final SQLiteDatabase database = init.getWritableDatabase();
